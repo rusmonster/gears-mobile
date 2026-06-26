@@ -1,0 +1,23 @@
+<resources>
+    <string name="problem_report_auto_captured">Otomatik olarak eklendi</string>
+    <string name="problem_report_output_zip_filename">problem_report.zip</string>
+    <string name="problem_report_submit_error">Rapor oluşturulamadı</string>
+    <string name="problem_type_bug">Hata / Beklenmedik davranış</string>
+    <string name="problem_type_ui">UI / Görüntüleme sorunu</string>
+    <string name="problem_type_performance">Performans / Çökme sorunları</string>
+    <string name="problem_type_account">Hesap / Giriş sorunu</string>
+    <string name="problem_type_content">İçerik sorunu</string>
+    <string name="problem_type_other">Diğer</string>
+
+    <!-- Sharing -->
+    <string name="problem_report_email_subject_format">Sorun Raporu [%1$s]</string>
+    <string name="problem_report_char_counter_format">%1$d/%2$d</string>
+
+    <!-- Metadata labels for report file -->
+    <string name="metadata_report_id">Rapor Kimliği:</string>
+    <string name="metadata_problem_type">Sorun Türü:</string>
+    <string name="metadata_os">İşletim Sistemi:</string>
+    <string name="metadata_device">Cihaz:</string>
+    <string name="metadata_description">Açıklama:</string>
+    <string name="metadata_steps_to_reproduce">Yeniden Üretme Adımları:</string>
+</resources>

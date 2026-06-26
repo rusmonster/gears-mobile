@@ -1,0 +1,89 @@
+# Detekt configuration — Phase 1: dead-code detection only.
+#
+# All default rulesets are disabled. Only the rules listed below are active.
+# Style, formatting, and naming concerns are handled by ktlint and the custom
+# `constructor` ruleset (see android-app/gradle/ktlint-rules/).
+#
+# Declarations annotated with @PendingUse are excluded so that types landing
+# ahead of their consumer do not break the build.
+
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+    - 'ComplexityReport'
+    - 'NotificationReport'
+    - 'FileBasedFindingsReport'
+
+output-reports:
+  active: true
+
+# All default rule sets disabled — only the dead-code rules below are turned back on.
+comments:
+  active: false
+complexity:
+  active: false
+coroutines:
+  active: false
+empty-blocks:
+  active: false
+exceptions:
+  active: false
+naming:
+  active: false
+performance:
+  active: false
+potential-bugs:
+  active: false
+style:
+  active: true
+  # Every style rule explicitly off — only the dead-code rules are enabled.
+  UnusedImports:
+    active: false # owned by ktlint `no-unused-imports`
+  UnusedParameter:
+    active: true
+    allowedNames: 'ignored|expected|serialVersionUID'
+    ignoreAnnotated:
+      - 'PendingUse'
+      - 'app.constructor.csdk.annotations.PendingUse'
+    excludes:
+      - '**/build/**'
+      - '**/generated/**'
+  UnusedPrivateClass:
+    active: true
+    ignoreAnnotated:
+      - 'PendingUse'
+      - 'app.constructor.csdk.annotations.PendingUse'
+    excludes:
+      - '**/build/**'
+      - '**/generated/**'
+  UnusedPrivateMember:
+    active: true
+    allowedNames: '(_|ignored|expected|serialVersionUID)'
+    ignoreAnnotated:
+      - 'PendingUse'
+      - 'app.constructor.csdk.annotations.PendingUse'
+    excludes:
+      - '**/build/**'
+      - '**/generated/**'
+  UnusedPrivateProperty:
+    active: true
+    allowedNames: '(_|ignored|expected|serialVersionUID)'
+    ignoreAnnotated:
+      - 'PendingUse'
+      - 'app.constructor.csdk.annotations.PendingUse'
+    excludes:
+      - '**/build/**'
+      - '**/generated/**'

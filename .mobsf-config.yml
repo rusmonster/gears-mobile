@@ -1,0 +1,16 @@
+ignore-paths:
+  - build
+  - .gradle
+  - .idea
+ignore-filenames: []
+ignore-extensions:
+  - .png
+  - .jpg
+  - .jpeg
+  - .gif
+  - .webp
+  - .svg
+  - .ttf
+  - .otf
+  - .pem
+ignore-rules: []

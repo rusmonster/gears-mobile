@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="problem_report_auto_captured">Captura automática</string>
+    <string name="problem_report_output_zip_filename">informe_del_problema.zip</string>
+    <string name="problem_report_submit_error">No se pudo crear el informe.</string>
+    <string name="problem_type_bug">Error / Comportamiento inesperado</string>
+    <string name="problem_type_ui">Problema de interfaz de usuario/visualización</string>
+    <string name="problem_type_performance">Rendimiento / Fallos</string>
+    <string name="problem_type_account">Problema con la cuenta o el inicio de sesión</string>
+    <string name="problem_type_content">Problema de contenido</string>
+    <string name="problem_type_other">Otro</string>
+    <string name="problem_report_email_subject_format">Informe de problemas [%1$s]</string>
+    <string name="problem_report_char_counter_format">%1$d/%2$d</string>
+    <string name="metadata_report_id">ID del informe:</string>
+    <string name="metadata_problem_type">Tipo de problema:</string>
+    <string name="metadata_os">Sistema operativo:</string>
+    <string name="metadata_device">Dispositivo:</string>
+    <string name="metadata_description">Descripción:</string>
+    <string name="metadata_steps_to_reproduce">Pasos para reproducir el problema:</string>
+</resources>

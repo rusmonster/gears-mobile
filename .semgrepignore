@@ -1,0 +1,13 @@
+# =============================================================================
+# .semgrepignore — Semgrep scanner exclusions for the Constructor SDK
+# =============================================================================
+# Each exclusion is documented with its rationale.
+# =============================================================================
+
+# Test-only dummy PEM keys used exclusively in problem-report commonTest.
+# These are NOT real production credentials.
+gears/feature/problem-report/data/src/commonTest/
+
+# Build / tooling output
+**/build/
+.gradle/
