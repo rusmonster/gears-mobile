@@ -1,0 +1,23 @@
+<resources>
+    <string name="problem_report_auto_captured">Acquisito automaticamente</string>
+    <string name="problem_report_output_zip_filename">problem_report.zip</string>
+    <string name="problem_report_submit_error">Impossibile creare il report</string>
+    <string name="problem_type_bug">Bug / Comportamento imprevisto</string>
+    <string name="problem_type_ui">UI / Problema di visualizzazione</string>
+    <string name="problem_type_performance">Prestazioni / Crash</string>
+    <string name="problem_type_account">Account / Problema di accesso</string>
+    <string name="problem_type_content">Problema di contenuto</string>
+    <string name="problem_type_other">Altro</string>
+
+    <!-- Sharing -->
+    <string name="problem_report_email_subject_format">Segnalazione problema [%1$s]</string>
+    <string name="problem_report_char_counter_format">%1$d/%2$d</string>
+
+    <!-- Metadata labels for report file -->
+    <string name="metadata_report_id">ID report:</string>
+    <string name="metadata_problem_type">Tipo di problema:</string>
+    <string name="metadata_os">Sistema operativo:</string>
+    <string name="metadata_device">Dispositivo:</string>
+    <string name="metadata_description">Descrizione:</string>
+    <string name="metadata_steps_to_reproduce">Passi per riprodurre:</string>
+</resources>

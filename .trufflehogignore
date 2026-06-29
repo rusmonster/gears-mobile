@@ -1,0 +1,8 @@
+# Historical false positives: cache keys detected as Sentry tokens
+gradle/cache-key\.txt
+
+# Test-only private key used in problem-report tests
+gears/feature/problem-report/data/src/commonTest/composeResources/files/test_private_key\.pem
+
+# Historical false positives detected as GitLab tokens
+gradle/libs\.versions\.toml

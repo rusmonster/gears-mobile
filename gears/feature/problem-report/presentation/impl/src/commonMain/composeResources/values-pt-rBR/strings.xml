@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="problem_type_other">Outros</string>
+    <string name="metadata_description">Descrição</string>
+    <string name="problem_report_email_subject_format">Relatório de Problema [%1$s]</string>
+    <string name="problem_report_char_counter_format">%1$d/%2$d</string>
+    <string name="metadata_report_id">ID do relatório:</string>
+    <string name="metadata_problem_type">Tipo de problema:</string>
+    <string name="metadata_os">SO:</string>
+    <string name="metadata_device">Dispositivo:</string>
+    <string name="metadata_steps_to_reproduce">Passos para reproduzir:</string>
+    <string name="problem_report_auto_captured">Captura automática</string>
+    <string name="problem_report_output_zip_filename">relatório_de_problemas.zip</string>
+    <string name="problem_report_submit_error">Falha ao criar o relatório</string>
+    <string name="problem_type_bug">Erro / Comportamento inesperado</string>
+    <string name="problem_type_ui">Problema de interface/exibição</string>
+    <string name="problem_type_performance">Desempenho / Falhas</string>
+    <string name="problem_type_account">Problema com a conta/login</string>
+    <string name="problem_type_content">Problema de conteúdo</string>
+</resources>

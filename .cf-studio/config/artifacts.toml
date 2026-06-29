@@ -1,0 +1,53 @@
+# Constructor Studio artifacts registry
+
+[[systems]]
+name = "CyberfabricMobile"
+slug = "cyberfabricmobile"
+kit = "sdlc"
+artifacts_dir = "docs/sdlc"
+children = []
+
+# Reconstructed from code via cf-sdlc-reverse-engineer; @cpt-* markers added in code.
+# FEATURE is FULL (its flow/algo/state/dod IDs are traced to @cpt markers in gears/).
+# PRD/ADR/DESIGN stay DOCS-ONLY (they define no to_code kinds).
+
+[[systems.artifacts]]
+name = "Gears Mobile SDK PRD"
+path = "docs/sdlc/PRD/PRD.md"
+kind = "PRD"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "ADR 0001 — KMP shared logic"
+path = "docs/sdlc/ADR/0001-kmp-shared-logic.md"
+kind = "ADR"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "ADR 0002 — MVI contract"
+path = "docs/sdlc/ADR/0002-mvi-contract.md"
+kind = "ADR"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "ADR 0003 — Enforced layers"
+path = "docs/sdlc/ADR/0003-enforced-layers.md"
+kind = "ADR"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "Gears Mobile SDK Design"
+path = "docs/sdlc/DESIGN/DESIGN.md"
+kind = "DESIGN"
+traceability = "DOCS-ONLY"
+
+[[systems.artifacts]]
+name = "Problem Report Feature"
+path = "docs/sdlc/FEATURE/problem-report.md"
+kind = "FEATURE"
+traceability = "FULL"
+
+[[systems.codebase]]
+name = "Gears KMP Source"
+path = "gears"
+extensions = [".kt"]

@@ -1,0 +1,78 @@
+[versions]
+android-minSdk = "27"
+android-targetSdk = "36"
+android-compileSdk = "36"
+android-buildTools = "36.0.0"
+
+agp = "9.0.0"
+kotlin = "2.3.20"
+runner = "1.7.0"
+lifecycleViewmodel = "2.10.0"
+coroutines = "1.10.2"
+hilt = "2.59.1"
+kotlinxSerialization = "1.10.0"
+ktlint = "14.0.1"
+ktlintCore = "1.2.1"
+detekt = "1.23.7"
+sortDependencies = "0.16"
+kotlinxDatetime = "0.6.0"
+turbine = "1.2.1"
+mokkery = "3.3.0"
+composeMultiplatform = "1.10.3"
+cryptographyKotlin = "0.5.0"
+skie = "0.10.11"
+kotlinxIo = "0.8.0"
+
+[libraries]
+# Gradle plugins (for convention plugins)
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-plugin-ktlint = { group = "org.jlleitschuh.gradle.ktlint", name = "org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlint" }
+gradle-plugin-detekt = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }
+gradle-plugin-sort-dependencies = { group = "com.squareup.sort-dependencies", name = "com.squareup.sort-dependencies.gradle.plugin", version.ref = "sortDependencies" }
+mokkery-gradle-plugin = { module = "dev.mokkery:mokkery-gradle", version.ref = "mokkery" }
+
+# Compose
+compose-gradle = { group = "org.jetbrains.compose", name = "compose-gradle-plugin", version.ref = "composeMultiplatform" }
+compose-compiler-gradle = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+compose-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "composeMultiplatform" }
+compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "composeMultiplatform" }
+
+# Lifecycle
+androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycleViewmodel" }
+
+# Kotlin
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
+
+# Coroutines
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+
+# Testing
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+
+# Hilt
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+
+# Serialization
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# KMP
+cryptography-kotlin = { group = "dev.whyoleg.cryptography", name = "cryptography-core", version.ref = "cryptographyKotlin" }
+cryptography-kotlin-optimal = { group = "dev.whyoleg.cryptography", name = "cryptography-provider-optimal", version.ref = "cryptographyKotlin" }
+kotlinx-io-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinxIo" }
+kmp-zip = { group = "no.synth", name = "kmp-zip", version = "0.7.1" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
+mokkery = { id = "dev.mokkery", version.ref = "mokkery" }
+skie = { id = "co.touchlab.skie", version.ref = "skie" }
