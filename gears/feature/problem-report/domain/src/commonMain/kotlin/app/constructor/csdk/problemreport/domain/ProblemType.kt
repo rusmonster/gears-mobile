@@ -15,5 +15,8 @@ enum class ProblemType(val index: Int) {
     companion object {
         fun fromIndex(index: Int): ProblemType = entries.first { it.index == index }
         fun fromIndexOrDefault(index: Int): ProblemType = entries.firstOrNull { it.index == index } ?: OTHER
+
+        /** Returns the type for [index], or `null` when no category maps to it. */
+        fun fromIndexOrNull(index: Int): ProblemType? = entries.firstOrNull { it.index == index }
     }
 }

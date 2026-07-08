@@ -45,6 +45,7 @@ kotlin {
                 api(projects.feature.problemReport)
 
                 implementation(projects.common.di.appModule)
+                implementation(projects.common.logging)
             }
         }
         commonTest {

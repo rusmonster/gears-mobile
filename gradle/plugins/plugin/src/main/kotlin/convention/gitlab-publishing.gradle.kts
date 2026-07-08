@@ -31,7 +31,9 @@ val gitlabBaseUrl: String? = project.findProperty("gitlab.baseUrl") as String?
 val ciJobToken: String? = System.getenv("CI_JOB_TOKEN")
 val privateToken: String? = project.findProperty("gitlab.privateToken") as String?
 
-if (gitlabBaseUrl != null && gitlabProjectId != null && (ciJobToken == null || privateToken == null)) {
+// Only configure the GitLab repository when we actually have a credential to authenticate with —
+// otherwise a local, token-less build would register a repo with a null credential value.
+if (gitlabBaseUrl != null && gitlabProjectId != null && (ciJobToken != null || privateToken != null)) {
     publishing {
         repositories {
             maven {

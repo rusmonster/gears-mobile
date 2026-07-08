@@ -123,6 +123,15 @@ class ProblemReportViewModelImpl(
     // @cpt-flow:cpt-cyberfabricmobile-flow-problem-report-submit:p1
     // @cpt-state:cpt-cyberfabricmobile-state-problem-report-modal:p2
     private suspend fun onSubmit() {
+        // Guard on authoritative ViewModel state, not just the UI's enabled flag: a host can
+        // dispatch Submit while the form is invalid or a submission is already in flight.
+        val data = uiState.value
+        if (!data.isSubmitEnabled || data.modalState == ProblemReport.ModalState.Submitting) {
+            return
+        }
+        // Reject an out-of-range problem-type index instead of silently falling back to OTHER.
+        val problemType = ProblemType.fromIndexOrNull(data.problemTypeSelectedIndex) ?: return
+
         // @cpt-begin:cpt-cyberfabricmobile-flow-problem-report-submit:p1:inst-submitting
         // @cpt-begin:cpt-cyberfabricmobile-state-problem-report-modal:p2:inst-t-submit
         updateState { it.copy(isInputEnabled = false, modalState = ProblemReport.ModalState.Submitting) }
@@ -131,11 +140,10 @@ class ProblemReportViewModelImpl(
 
         try {
             // @cpt-begin:cpt-cyberfabricmobile-flow-problem-report-submit:p1:inst-create
-            val data = uiState.value
             val labels = resolveMetadataLabels()
             val result = createProblemReportUseCase.createReport(
                 report = ProblemReportData(
-                    problemType = ProblemType.fromIndexOrDefault(data.problemTypeSelectedIndex),
+                    problemType = problemType,
                     problemDescription = data.problemDescription,
                     reproSteps = data.reproSteps,
                     screenshotFilePaths = data.screenshots.map { it.filePath },

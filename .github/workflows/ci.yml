@@ -19,6 +19,8 @@ jobs:
   # ── Security scans (replaces the GitLab SAST stage + MobSF jobs) ──────────────
   # Report-only by default (so the dev loop isn't blocked on first run). Flip the
   # `|| true` / `--exit-code` to enforce once the baseline is clean.
+  # TODO(follow-up): design docs treat security scans as a build gate — make these
+  # steps blocking once the initial baseline is triaged. Tracked separately.
   sast:
     name: Security scans
     runs-on: ubuntu-latest
@@ -123,6 +125,9 @@ jobs:
       - name: iOS unit tests (Kotlin/Native)
         # Known: Compose-resources getString() can deadlock on the iOS simulator
         # main thread — don't fail the job on it.
+        # TODO(follow-up): design docs treat tests as a build gate. This is temporary
+        # until the Compose-resources simulator deadlock is fixed; drop
+        # `continue-on-error` and make the job blocking once it is. Tracked separately.
         continue-on-error: true
         run: ./gradlew iosSimulatorArm64Test --stacktrace --console=plain
 
