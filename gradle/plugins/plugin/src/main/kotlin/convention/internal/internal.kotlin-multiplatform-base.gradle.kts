@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.mokkery)
     id("internal.kotlin-base")
-    id("convention.gitlab-publishing")
 }
 
 configure<KotlinMultiplatformExtension> {

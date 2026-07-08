@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
   # ── Security scans (replaces the GitLab SAST stage + MobSF jobs) ──────────────
-  # Report-only by default (so the dev loop isn't blocked on first run). Flip the
-  # `|| true` / `--exit-code` to enforce once the baseline is clean.
+  # Enforcing: any finding fails the job (verified secrets, HIGH/CRITICAL vulns,
+  # ERROR-severity SAST rules, or mobsfscan findings), gating the pipeline.
   sast:
     name: Security scans
     runs-on: ubuntu-latest
@@ -26,23 +26,35 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: TruffleHog (secret scan)
+        # Download the installer to a file before running it — piping curl straight into a
+        # shell is flagged by SAST (gha-curl-pipe-shell) and executes unverified remote code.
         run: |
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh \
-            | sh -s -- -b "$RUNNER_TEMP/bin"
-          "$RUNNER_TEMP/bin/trufflehog" filesystem . --only-verified || true
+            -o "$RUNNER_TEMP/trufflehog-install.sh"
+          sh "$RUNNER_TEMP/trufflehog-install.sh" -b "$RUNNER_TEMP/bin"
+          "$RUNNER_TEMP/bin/trufflehog" filesystem . --only-verified --fail
 
       - name: Trivy (vuln / secret / misconfig)
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-            | sh -s -- -b "$RUNNER_TEMP/bin"
+            -o "$RUNNER_TEMP/trivy-install.sh"
+          sh "$RUNNER_TEMP/trivy-install.sh" -b "$RUNNER_TEMP/bin"
           "$RUNNER_TEMP/bin/trivy" fs --scanners vuln,secret,misconfig \
-            --severity HIGH,CRITICAL --exit-code 0 .
+            --severity HIGH,CRITICAL --exit-code 1 .
+
+      # mobsfscan shells out to the `semgrep` binary, so semgrep must be installed and on PATH
+      # (pipx run's ephemeral env doesn't persist it). Install both up front.
+      - name: Install SAST tooling (Semgrep + mobsfscan)
+        run: |
+          pipx install semgrep
+          pipx install mobsfscan
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Semgrep (SAST)
-        run: pipx run semgrep scan --config auto --severity ERROR . || true
+        run: semgrep scan --config auto --severity ERROR --error .
 
       - name: MobSF source scan (mobsfscan)
-        run: pipx run mobsfscan . || true
+        run: mobsfscan .
 
   # ── Android: quality + JVM tests + AAR (replaces ci/android.yml) ──────────────
   android:
@@ -86,7 +98,6 @@ jobs:
           path: |
             gears/**/build/reports/
             gears/**/build/test-results/
-          if-no-files-found: ignore
 
       - name: Upload AARs
         if: always()
@@ -94,7 +105,6 @@ jobs:
         with:
           name: android-aar
           path: gears/**/build/outputs/aar/*.aar
-          if-no-files-found: ignore
 
   # ── iOS: simulator (arm64) debug XCFramework + native tests. Runs on every PR.
   ios:
@@ -121,9 +131,6 @@ jobs:
         run: ./gradlew :gears:assembleGearsDebugXCFramework -PxcfTarget=iosSimulatorArm64 --stacktrace --console=plain
 
       - name: iOS unit tests (Kotlin/Native)
-        # Known: Compose-resources getString() can deadlock on the iOS simulator
-        # main thread — don't fail the job on it.
-        continue-on-error: true
         run: ./gradlew iosSimulatorArm64Test --stacktrace --console=plain
 
       - name: Upload XCFramework
@@ -132,4 +139,3 @@ jobs:
         with:
           name: Gears-xcframework-debug
           path: gears/gears/build/XCFrameworks/debug/Gears.xcframework
-          if-no-files-found: ignore

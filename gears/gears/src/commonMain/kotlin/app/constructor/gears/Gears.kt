@@ -15,7 +15,10 @@ object Gears {
      * @param config Host-supplied settings — support email, encryption public key, and an
      *   optional auto-captured screenshot. See [ProblemReport.Config].
      * @return A ready-to-use ViewModel driving the problem-report UI; create one per screen.
+     * @throws IllegalStateException if `Gears.initialize(...)` was not called first.
      */
-    fun newProblemReportViewModel(config: ProblemReport.Config) =
-        ProblemReportModule.newProblemReportViewModel(config)
+    fun newProblemReportViewModel(config: ProblemReport.Config): ProblemReport.ViewModel {
+        GearsInitializer.ensureInit()
+        return ProblemReportModule.newProblemReportViewModel(config)
+    }
 }

@@ -13,6 +13,7 @@
   - [Dismiss the modal](#dismiss-the-modal)
 - [3. Processes / Business Logic (CDSL)](#3-processes--business-logic-cdsl)
   - [Create problem-report archive](#create-problem-report-archive)
+  - [Clean up old report bundles](#clean-up-old-report-bundles)
 - [4. States (CDSL)](#4-states-cdsl)
   - [Submission modal state machine](#submission-modal-state-machine)
 - [5. Definitions of Done](#5-definitions-of-done)
@@ -77,8 +78,11 @@ public key before it ever leaves the SDK.
 
 **Error Scenarios**:
 - Report assembly/encryption fails → an error modal is shown; input is re-enabled on dismiss.
+- Submit dispatched while the form is invalid or a submission is already in flight → the action
+  is ignored (no state change), guarding on authoritative ViewModel state rather than the UI's
+  enabled flag. An out-of-range problem-type index is rejected rather than defaulting to `OTHER`.
 
-**Steps**:
+**Steps** (run only after the guard above passes):
 1. [x] - `p1` - Set `modalState = Submitting`, `isInputEnabled = false` - `inst-submitting`
 2. [x] - `p1` - Build `ProblemReportData` from `UiState` and run `cpt-cyberfabricmobile-algo-problem-report-create` - `inst-create`
 3. [x] - `p1` - **RETURN** `Event.ReadyToShare(ProblemReportResult)`; host opens a share/email intent to `Config.supportEmail` - `inst-ready`
@@ -108,12 +112,27 @@ Evidence: `gears/feature/problem-report/presentation/impl/.../ProblemReportViewM
 **Steps**:
 1. [x] - `p1` - Generate `reportId` and collect device metadata (`DeviceInfo` expect/actual) - `inst-meta`
 2. [x] - `p1` - **IF** `includeLogs` **THEN** gather log files from `:common:logging` - `inst-logs`
-3. [x] - `p1` - Write metadata, then pack logs + screenshots + metadata into a zip via `:common:zip` `ZipPacker` - `inst-zip`
-4. [x] - `p1` - Encrypt the archive to `Config.publicKeyPem` → `.cpb` (`EncryptFileUseCase`) - `inst-encrypt`
+3. [x] - `p1` - In a **per-report temp directory**, write metadata then pack logs + screenshots + metadata into a zip via `:common:zip` `ZipPacker` - `inst-zip`
+4. [x] - `p1` - Encrypt the archive to `Config.publicKeyPem` → `.cpb` (`EncryptFileUseCase`), then move it to a report-id-scoped path (`problem_report_<reportId>.cpb`) - `inst-encrypt`
 5. [x] - `p1` - **RETURN** `ProblemReportResult(reportId, cpbPath)` - `inst-result`
+
+Each report is isolated in its own temp directory, so concurrent ViewModels or rapid repeated
+submissions cannot overwrite each other's artifacts or replace a `cpbPath` already returned to
+an earlier report. A `finally` block always deletes that temp directory, so the plaintext zip +
+metadata never linger on disk whether encryption succeeds or fails.
 
 Evidence: `gears/feature/problem-report/data/.../CreateProblemReportUseCaseImpl.kt`,
 `.../EncryptFileUseCaseImpl.kt`, `.../CpbFormat.kt`, `gears/common/zip/.../ZipPackerImpl.kt`.
+
+### Clean up old report bundles
+
+Encrypted `.cpb` bundles can linger after the host has shared them. On every
+`Gears.initialize(...)`, `CleanupProblemReportsUseCase` runs asynchronously and deletes any `.cpb`
+in the app directory older than 24h, bounding how long report data stays on device. Supporting
+maintenance behavior (no `@cpt` marker; not part of the traced flow).
+
+Evidence: `gears/feature/problem-report/data/.../CleanupProblemReportsUseCaseImpl.kt`,
+`gears/gears/src/commonMain/kotlin/app/constructor/gears/GearsInitializer.kt`.
 
 ## 4. States (CDSL)
 
@@ -126,7 +145,7 @@ Evidence: `gears/feature/problem-report/data/.../CreateProblemReportUseCaseImpl.
 **Initial State**: None
 
 **Transitions**:
-1. [x] - `p1` - **FROM** None **TO** Submitting **WHEN** `Action.Submit` dispatched - `inst-t-submit`
+1. [x] - `p1` - **FROM** None **TO** Submitting **WHEN** `Action.Submit` dispatched **and** the form is submittable (`isSubmitEnabled`, not already submitting) - `inst-t-submit`
 2. [x] - `p1` - **FROM** Submitting **TO** None **WHEN** archive created → `ReadyToShare` emitted - `inst-t-success`
 3. [x] - `p1` - **FROM** Submitting **TO** Error **WHEN** assembly/encryption throws - `inst-t-error`
 4. [x] - `p1` - **FROM** Error **TO** None **WHEN** `Action.DismissModal` - `inst-t-dismiss`
@@ -141,7 +160,9 @@ Evidence: `ProblemReport.ModalState` (`None`/`Submitting`/`Error`) in `ProblemRe
 
 The system **MUST** expose the full `Action`/`UiState` contract (category, description, repro
 steps, screenshots, include-logs), truncate text at `MAX_TEXT_LENGTH`, and enable Submit only
-when the description is non-blank.
+when the description is non-blank. Submit is additionally guarded at dispatch time against the
+authoritative ViewModel state, so an invalid or in-flight submission is ignored rather than
+relying on the UI's enabled flag alone.
 
 **Steps**:
 1. [x] - `p1` - On init, populate problem-type options, support email, and any auto-captured screenshot - `inst-init`
@@ -180,8 +201,11 @@ producing a `.cpb` whose path is returned in `ProblemReportResult`.
 - [ ] Description and repro-steps fields truncate at 1000 characters.
 - [ ] Adding then removing a screenshot leaves the expected set; auto-captured screenshot from `Config` is pre-attached.
 - [ ] Submit emits `Event.ReadyToShare` with a `ProblemReportResult`, and the use case receives the captured `ProblemReportData`.
+- [ ] Submit dispatched while the form is invalid (or a submission is already running) is ignored — no `Submitting` transition and no use-case call.
+- [ ] Each report produces a unique, report-id-scoped `cpbPath`; the plaintext zip + metadata are deleted after encryption (success or failure).
+- [ ] `.cpb` bundles older than 24h are deleted on `Gears.initialize(...)`; newer bundles and non-`.cpb` files are left untouched.
 - [ ] On use-case failure, `modalState` becomes `Error` and input is disabled; `DismissModal` restores `None` + input.
 
 > Acceptance criteria above are **covered by existing tests**:
 > `ProblemReportViewModelImplTest` (commonTest), `ProblemReportStringsLocaleTest` (jvmTest),
-> `CreateProblemReportUseCaseImplTest`, `EncryptFileUseCaseImplTest`.
+> `CreateProblemReportUseCaseImplTest`, `EncryptFileUseCaseImplTest`, `CleanupProblemReportsUseCaseImplTest`.

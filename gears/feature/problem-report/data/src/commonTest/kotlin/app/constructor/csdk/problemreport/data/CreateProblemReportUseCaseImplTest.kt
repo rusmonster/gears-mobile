@@ -27,12 +27,22 @@ class CreateProblemReportUseCaseImplTest {
 
     private val fileSystem = FileSystem()
     private lateinit var tempDir: String
+
+    // Exact path passed to encrypt() (the plaintext ZIP inside the per-report temp dir).
+    private var encryptInputPath: String? = null
+
+    // The use case deletes the plaintext ZIP right after encryption, so the mock preserves a copy
+    // (keyed by the unique per-report dir name) for tests that need to inspect the archive contents.
     private var capturedZipPath: String? = null
 
     private val encryptFile = mock<EncryptFileUseCase> {
         everySuspend { encrypt(any()) } calls { (zipPath: String) ->
-            capturedZipPath = zipPath
-            zipPath.replaceAfterLast('.', CpbFormat.FILE_EXTENSION)
+            encryptInputPath = zipPath
+            val reportDirName = zipPath.substringBeforeLast('/').substringAfterLast('/')
+            val preserved = "$tempDir/preserved-$reportDirName.zip"
+            fileSystem.move(zipPath, preserved)
+            capturedZipPath = preserved
+            preserved.replaceAfterLast('.', CpbFormat.FILE_EXTENSION)
         }
     }
 
@@ -57,7 +67,6 @@ class CreateProblemReportUseCaseImplTest {
     @AfterTest
     fun tearDown() {
         fileSystem.delete(tempDir)
-        fileSystem.delete("${fileSystem.getAppDirectory()}/${CreateProblemReportUseCaseImpl.OUTPUT_ZIP_FILENAME}")
         fileSystem.delete(LogFiles.getLogPath(fileSystem))
         fileSystem.delete(LogFiles.getBackupLogPath(fileSystem))
     }
@@ -85,10 +94,33 @@ class CreateProblemReportUseCaseImplTest {
     }
 
     @Test
-    fun encryptFileIsCalledWithZipPath() = runTest {
+    fun encryptFileIsCalledWithZipInIsolatedTempDir() = runTest {
         sut.createReport(minimalReport(), testLabels)
-        val expectedZipPath = "${fileSystem.getAppDirectory()}/${CreateProblemReportUseCaseImpl.OUTPUT_ZIP_FILENAME}"
-        assertEquals(expectedZipPath, capturedZipPath)
+        assertTrue(
+            encryptInputPath!!.endsWith("/${CreateProblemReportUseCaseImpl.OUTPUT_ZIP_FILENAME}"),
+            "encrypt() must receive the report ZIP",
+        )
+        assertTrue(
+            encryptInputPath!!.substringBeforeLast('/') != fileSystem.getAppDirectory(),
+            "The ZIP must live in a per-report temp dir, not directly in the app directory",
+        )
+    }
+
+    @Test
+    fun deletesPlaintextArtifactsAfterEncryption() = runTest {
+        sut.createReport(minimalReport(), testLabels)
+        val reportDir = encryptInputPath!!.substringBeforeLast('/')
+        assertFalse(
+            fileSystem.exists(reportDir),
+            "Per-report temp dir (plaintext ZIP + metadata) must be deleted after encryption",
+        )
+    }
+
+    @Test
+    fun eachReportUsesIsolatedArtifactPaths() = runTest {
+        val cpb1 = sut.createReport(minimalReport(), testLabels).cpbPath
+        val cpb2 = sut.createReport(minimalReport(), testLabels).cpbPath
+        assertTrue(cpb1 != cpb2, "Each report must produce a unique .cpb path")
     }
 
     @Test
@@ -230,15 +262,12 @@ class CreateProblemReportUseCaseImplTest {
     }
 
     @Test
-    fun deletesTemporaryMetadataFileAfterPacking() = runTest {
-        val metadataPath = "${fileSystem.getAppDirectory()}/problem_report_metadata.txt"
-
-        sut.createReport(
-            report = ProblemReportData(ProblemType.CONTENT, "Missing video", "", emptyList(), includeLogs = false),
-            labels = testLabels,
+    fun cpbPathIsScopedToReportId() = runTest {
+        val result = sut.createReport(minimalReport(), testLabels)
+        assertTrue(
+            result.cpbPath.endsWith("problem_report_${result.reportId}.${CpbFormat.FILE_EXTENSION}"),
+            "cpbPath must be scoped to the report id",
         )
-
-        assertFalse(fileSystem.exists(metadataPath), "Metadata file should be cleaned up after packing")
     }
 
     private fun minimalReport() = ProblemReportData(

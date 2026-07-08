@@ -17,6 +17,7 @@ kotlin {
                 implementation(libs.cryptography.kotlin)
                 implementation(libs.cryptography.kotlin.optimal)
                 implementation(libs.kotlinx.io.core)
+                implementation(projects.common.common)
                 implementation(projects.common.files)
                 implementation(projects.common.logging)
                 implementation(projects.common.zip)

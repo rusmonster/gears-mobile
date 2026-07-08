@@ -12,6 +12,7 @@ import dev.mokkery.answering.throws
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -250,6 +251,19 @@ class ProblemReportViewModelImplTest {
                 labels = any(),
             )
         }
+    }
+
+    @Test
+    fun submit_whenFormInvalid_isIgnored() = runTest {
+        val vm = createViewModel()
+        // Wait for initialisation, then dispatch Submit without a description or problem type.
+        vm.uiState.first { it.problemTypeOptions.isNotEmpty() }
+        vm.sendAction(ProblemReport.Action.Submit).join()
+
+        val state = vm.uiState.value
+        assertEquals(ProblemReport.ModalState.None, state.modalState)
+        assertFalse(state.isSubmitEnabled)
+        verifySuspend(mode = VerifyMode.not) { problemReporter.createReport(any(), any()) }
     }
 
     @Test

@@ -57,4 +57,9 @@ internal open class BaseJvmFileSystem : FileSystem {
     }
 
     override fun createTempDir(): String = Files.createTempDirectory("tmp").toString()
+
+    override fun listFiles(dirPath: String): List<String> =
+        File(dirPath).listFiles()?.map { it.absolutePath } ?: emptyList()
+
+    override fun lastModifiedMillis(path: String): Long = File(path).lastModified()
 }

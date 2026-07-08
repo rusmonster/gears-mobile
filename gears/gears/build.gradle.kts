@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.skie)
-    id("convention.gitlab-publishing")
 }
 
 kotlin {
@@ -44,7 +43,10 @@ kotlin {
             dependencies {
                 api(projects.feature.problemReport)
 
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(projects.common.common)
                 implementation(projects.common.di.appModule)
+                implementation(projects.common.logging)
             }
         }
         commonTest {
