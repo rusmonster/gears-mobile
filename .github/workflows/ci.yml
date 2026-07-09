@@ -42,11 +42,19 @@ jobs:
           "$RUNNER_TEMP/bin/trivy" fs --scanners vuln,secret,misconfig \
             --severity HIGH,CRITICAL --exit-code 1 .
 
+      # mobsfscan shells out to the `semgrep` binary, so semgrep must be installed and on PATH
+      # (pipx run's ephemeral env doesn't persist it). Install both up front.
+      - name: Install SAST tooling (Semgrep + mobsfscan)
+        run: |
+          pipx install semgrep
+          pipx install mobsfscan
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Semgrep (SAST)
-        run: pipx run semgrep scan --config auto --severity ERROR --error .
+        run: semgrep scan --config auto --severity ERROR --error .
 
       - name: MobSF source scan (mobsfscan)
-        run: pipx run mobsfscan .
+        run: mobsfscan .
 
   # ── Android: quality + JVM tests + AAR (replaces ci/android.yml) ──────────────
   android:
