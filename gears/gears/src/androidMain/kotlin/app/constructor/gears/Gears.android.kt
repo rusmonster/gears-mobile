@@ -2,7 +2,6 @@ package app.constructor.gears
 
 import android.content.Context
 import app.constructor.csdk.di.appmodule.ApplicationContextHolder
-import app.constructor.csdk.logging.L
 
 /**
  * Initialises Gears Mobile on Android.
@@ -12,9 +11,9 @@ import app.constructor.csdk.logging.L
  * and enables file-based logging so that SDK logs can be bundled into a report when the user
  * leaves "include logs" enabled.
  */
-fun Gears.init(context: Context) {
+fun Gears.initialize(context: Context) {
+    // The app context must be set before shared init runs, because file logging resolves its
+    // storage directory through it.
     ApplicationContextHolder.setContext(context)
-    // File logging depends on the app context for its storage directory, so enable it only
-    // after the context has been set above.
-    L.enableFileLogging()
+    GearsInitializer.init()
 }

@@ -1,9 +1,11 @@
 package app.constructor.csdk.files
 
 import kotlin.random.Random
+import platform.Foundation.NSDate
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileHandle
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSFileModificationDate
 import platform.Foundation.NSString
 import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
@@ -12,6 +14,7 @@ import platform.Foundation.NSUserDomainMask
 import platform.Foundation.create
 import platform.Foundation.fileHandleForWritingAtPath
 import platform.Foundation.seekToEndOfFile
+import platform.Foundation.timeIntervalSince1970
 import platform.Foundation.writeToFile
 
 @Suppress("FunctionName")
@@ -111,5 +114,16 @@ internal class IosFileSystem : FileSystem {
             fileManager.createDirectoryAtPath(path, withIntermediateDirectories = true, attributes = null, error = null)
         }
         return path
+    }
+
+    override fun listFiles(dirPath: String): List<String> {
+        val names = fileManager.contentsOfDirectoryAtPath(dirPath, null) ?: return emptyList()
+        return names.filterIsInstance<String>().map { "$dirPath/$it" }
+    }
+
+    override fun lastModifiedMillis(path: String): Long {
+        val attributes = fileManager.attributesOfItemAtPath(path, null) ?: return 0L
+        val modified = attributes[NSFileModificationDate] as? NSDate ?: return 0L
+        return (modified.timeIntervalSince1970 * 1000).toLong()
     }
 }

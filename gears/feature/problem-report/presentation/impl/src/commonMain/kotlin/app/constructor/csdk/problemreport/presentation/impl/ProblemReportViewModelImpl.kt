@@ -130,7 +130,10 @@ class ProblemReportViewModelImpl(
             return
         }
         // Reject an out-of-range problem-type index instead of silently falling back to OTHER.
-        val problemType = ProblemType.fromIndexOrNull(data.problemTypeSelectedIndex) ?: return
+        val problemType = ProblemType.fromIndexOrNull(data.problemTypeSelectedIndex) ?: run {
+            log.e { "Invalid problem-type index: ${data.problemTypeSelectedIndex}" }
+            return
+        }
 
         // @cpt-begin:cpt-cyberfabricmobile-flow-problem-report-submit:p1:inst-submitting
         // @cpt-begin:cpt-cyberfabricmobile-state-problem-report-modal:p2:inst-t-submit

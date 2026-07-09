@@ -88,7 +88,6 @@ jobs:
           path: |
             gears/**/build/reports/
             gears/**/build/test-results/
-          if-no-files-found: ignore
 
       - name: Upload AARs
         if: always()
@@ -96,7 +95,6 @@ jobs:
         with:
           name: android-aar
           path: gears/**/build/outputs/aar/*.aar
-          if-no-files-found: ignore
 
   # ── iOS: simulator (arm64) debug XCFramework + native tests. Runs on every PR.
   ios:
@@ -123,12 +121,6 @@ jobs:
         run: ./gradlew :gears:assembleGearsDebugXCFramework -PxcfTarget=iosSimulatorArm64 --stacktrace --console=plain
 
       - name: iOS unit tests (Kotlin/Native)
-        # Known: Compose-resources getString() can deadlock on the iOS simulator
-        # main thread — don't fail the job on it.
-        # TODO(follow-up): design docs treat tests as a build gate. This is temporary
-        # until the Compose-resources simulator deadlock is fixed; drop
-        # `continue-on-error` and make the job blocking once it is. Tracked separately.
-        continue-on-error: true
         run: ./gradlew iosSimulatorArm64Test --stacktrace --console=plain
 
       - name: Upload XCFramework
@@ -137,4 +129,3 @@ jobs:
         with:
           name: Gears-xcframework-debug
           path: gears/gears/build/XCFrameworks/debug/Gears.xcframework
-          if-no-files-found: ignore

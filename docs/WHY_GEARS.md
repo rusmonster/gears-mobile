@@ -328,8 +328,11 @@ Kotlin produces both platform artifacts with no code change:
 ### B.6 A typed public surface, idiomatic on both sides
 
 The SDK exposes one entry point — the `Gears` object — and keeps the surface deliberately
-small. `Gears.newProblemReportViewModel(...)` returns the feature's MVI `ViewModel`; on
-Android, `Gears.init(context)` supplies the application context once. Because the public
+small. `Gears.newProblemReportViewModel(...)` returns the feature's MVI `ViewModel`;
+`Gears.initialize(...)` must be called once before creating a ViewModel — on Android it also
+supplies the application context (`Gears.initialize(context)`), while on iOS it takes no argument
+(`Gears.initialize()`) — and it enables SDK file logging and sweeps report bundles older than 24h
+on both platforms. Because the public
 contract is plain Kotlin `sealed`/`data` types and `Flow`s, **SKIE** renders them as
 native Swift enums, sealed types, and async sequences — so iOS consumers get an
 idiomatic API, not a stringly-typed Objective-C bridge.

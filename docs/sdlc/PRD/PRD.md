@@ -90,8 +90,8 @@ problem-report ViewModel, and shares the resulting `.cpb` (e.g. via an email int
 
 ### 3.1 Module-Specific Environment Constraints
 
-- **Android**: host **MUST** call `Gears.init(context)` once before creating a ViewModel (resolves the app files directory). Minimum SDK and toolchain are pinned in `gradle/libs.versions.toml`.
-- **iOS**: distributed as `Gears.xcframework` (device + simulator), consumed via `import Gears`; built on macOS with Xcode.
+- **Android**: host **MUST** call `Gears.initialize(context)` once before creating a ViewModel (resolves the app files directory and enables SDK file logging). Minimum SDK and toolchain are pinned in `gradle/libs.versions.toml`.
+- **iOS**: distributed as `Gears.xcframework` (device + simulator), consumed via `import Gears`; built on macOS with Xcode. Host **MUST** call `Gears.initialize()` once before creating a ViewModel (enables SDK file logging; no context required).
 - No backend or network runtime — the SDK operates entirely on-device.
 
 ## 4. Scope
@@ -167,12 +167,15 @@ the SDK boundary.
 
 **Threshold**: Report content is encrypted with **AES-256-GCM**; the AES key is wrapped with
 **RSA-OAEP / SHA-256** using the host-supplied `Config.publicKeyPem`. The output is a
-self-contained `.cpb`; the plaintext archive is never surfaced to the host.
+self-contained `.cpb`; the plaintext archive is never surfaced to the host and is deleted from
+disk (from its per-report temp directory) once encryption completes, whether it succeeds or fails.
+Encrypted `.cpb` bundles are retained only transiently: any older than **24h** are swept on the
+next `Gears.initialize(...)`, bounding how long sensitive report data lingers on device.
 
 **Rationale**: Reports may contain logs/screenshots with sensitive data. *(Crypto scheme
 confirmed by stakeholder, 2026-06-23.)*
 
-**Verification Method**: `EncryptFileUseCaseImplTest`.
+**Verification Method**: `EncryptFileUseCaseImplTest`, `CleanupProblemReportsUseCaseImplTest`.
 
 #### Native runtime footprint
 
@@ -199,7 +202,9 @@ The SDK **MUST** ship as native artifacts with no embedded VM or JS bridge.
 **Stability**: stable
 
 **Description**: `Gears.newProblemReportViewModel(ProblemReport.Config)` returns the feature's
-MVI `ViewModel`; `Gears.init(Context)` (Android only) supplies the app context.
+MVI `ViewModel`; `Gears.initialize(...)` is called once before creating a ViewModel — `Gears.initialize(Context)`
+on Android supplies the app context, `Gears.initialize()` on iOS takes no argument — and enables SDK
+file logging on both platforms.
 
 **Breaking Change Policy**: Major version bump for any change to `Gears` or `ProblemReport.Config`.
 
@@ -224,7 +229,7 @@ MVI `ViewModel`; `Gears.init(Context)` (Android only) supplies the app context.
 **Actor**: `cpt-cyberfabricmobile-actor-end-user`
 
 **Preconditions**:
-- Host created the ViewModel via `Gears.newProblemReportViewModel(Config)` (Android: after `Gears.init(context)`).
+- Host created the ViewModel via `Gears.newProblemReportViewModel(Config)` (after `Gears.initialize(context)` on Android / `Gears.initialize()` on iOS).
 
 **Main Flow**:
 1. End user selects a category and writes a description.
@@ -243,7 +248,7 @@ MVI `ViewModel`; `Gears.init(Context)` (Android only) supplies the app context.
 
 - [ ] A host can obtain and drive a problem-report ViewModel on both Android and iOS from the same API.
 - [ ] Submitting a valid form yields an encrypted `.cpb` and a `ReadyToShare` event.
-- [ ] The plaintext report is never returned to the host.
+- [ ] The plaintext report is never returned to the host, and is deleted from disk after encryption.
 
 ## 10. Dependencies
 

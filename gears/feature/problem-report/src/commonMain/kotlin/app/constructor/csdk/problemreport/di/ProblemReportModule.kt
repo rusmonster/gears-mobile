@@ -1,8 +1,10 @@
 package app.constructor.csdk.problemreport.di
 
 import app.constructor.csdk.files.FileSystem
+import app.constructor.csdk.problemreport.data.CleanupProblemReportsUseCaseImpl
 import app.constructor.csdk.problemreport.data.CreateProblemReportUseCaseImpl
 import app.constructor.csdk.problemreport.data.EncryptFileUseCaseImpl
+import app.constructor.csdk.problemreport.domain.CleanupProblemReportsUseCase
 import app.constructor.csdk.problemreport.presentation.api.ProblemReport
 import app.constructor.csdk.problemreport.presentation.impl.ProblemReportViewModelImpl
 import app.constructor.csdk.zip.impl.ZipPacker
@@ -17,4 +19,7 @@ object ProblemReportModule {
         ),
         config = config,
     )
+
+    fun newCleanupProblemReportsUseCase(): CleanupProblemReportsUseCase =
+        CleanupProblemReportsUseCaseImpl(fileSystem = FileSystem())
 }

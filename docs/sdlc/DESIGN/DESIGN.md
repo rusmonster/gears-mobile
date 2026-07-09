@@ -144,10 +144,15 @@ and react to one-shot events.
 
 - [ ] `p2` - **ID**: `cpt-cyberfabricmobile-constraint-android-init`
 
-On Android, the host **MUST** call `Gears.init(context)` once before creating a ViewModel,
-so `ApplicationContextHolder` can resolve the app files directory. iOS needs no init.
+The host **MUST** call `Gears.initialize(...)` once before creating a ViewModel. On Android it
+takes the application context (`Gears.initialize(context)`) so `ApplicationContextHolder` can
+resolve the app files directory; on iOS it takes no argument (`Gears.initialize()`). On both
+platforms it also enables SDK file logging so logs can be bundled into a report, and kicks off
+an asynchronous cleanup of `.cpb` bundles older than 24h. Initialization runs exactly once
+(guarded by `GearsInitializer`); creating a ViewModel before it throws `IllegalStateException`.
 
 Evidence: `gears/gears/src/androidMain/kotlin/app/constructor/gears/Gears.android.kt`,
+`gears/gears/src/iosMain/kotlin/app/constructor/gears/Gears.ios.kt`,
 `gears/common/files/src/androidMain/kotlin/app/constructor/csdk/files/FileSystem.android.kt`.
 
 #### Build-gated quality floor
@@ -180,6 +185,7 @@ Evidence: `gradle/plugins/.../convention/internal/internal.kotlin-base.gradle.kt
 **Relationships**:
 - `ProblemReportData` → `ProblemType`: each report has one category.
 - `CreateProblemReportUseCase(ProblemReportData, MetadataLabels)` → `ProblemReportResult`.
+- `CleanupProblemReportsUseCase()` → deletes `.cpb` bundles older than 24h from the app directory.
 
 ### 3.2 Component Model
 
@@ -191,7 +197,7 @@ Evidence: `gradle/plugins/.../convention/internal/internal.kotlin-base.gradle.kt
 Single public entry point and the only module that produces the shippable artifacts (AAR + XCFramework).
 
 ##### Responsibility scope
-Exposes `Gears.newProblemReportViewModel(Config)` (common) and `Gears.init(context)` (Android); aggregates feature gears; configures the iOS framework (SKIE, `baseName = "Gears"`).
+Exposes `Gears.newProblemReportViewModel(Config)` (common), `Gears.initialize(context)` (Android), and `Gears.initialize()` (iOS); aggregates feature gears; configures the iOS framework (SKIE, `baseName = "Gears"`).
 
 ##### Responsibility boundaries
 Holds no feature logic; delegates to feature `*Module` DI factories.
@@ -238,7 +244,8 @@ logging, file/console writers), `:common:files` (`FileSystem` expect/actual), `:
 | Symbol | Signature | Stability |
 |--------|-----------|-----------|
 | `Gears.newProblemReportViewModel` | `(ProblemReport.Config) → ProblemReport.ViewModel` | stable |
-| `Gears.init` (Android only) | `(Context) → Unit` | stable |
+| `Gears.initialize` (Android) | `(Context) → Unit` | stable |
+| `Gears.initialize` (iOS) | `() → Unit` | stable |
 | `ProblemReport.Config` | `(supportEmail: String, publicKeyPem: ByteArray, autoCapturedScreenshotPath: String?)` | stable |
 
 > There are **no REST/HTTP endpoints** — the SDK is an on-device library. The "API" is the
@@ -296,6 +303,7 @@ sequenceDiagram
     Zip-->>UC: archive
     UC->>Enc: encrypt(archive, publicKeyPem)
     Enc-->>UC: .cpb file
+    UC->>UC: move .cpb to report-id-scoped path, delete plaintext temp dir
     UC-->>VM: ProblemReportResult(reportId, cpbPath)
     VM-->>UI: Event.ReadyToShare(result)
     UI->>User: Share/email intent (to supportEmail)
@@ -306,8 +314,12 @@ result to the host to share — the SDK never transmits data itself.
 
 ### 3.7 Database schemas & tables
 
-**N/A** — the SDK persists no database. Transient artifacts are written to the app files
-directory (`FileSystem.getAppDirectory()`) and cleaned up by the host.
+**N/A** — the SDK persists no database. Plaintext artifacts (metadata + zip) are written to a
+per-report temp directory (`FileSystem.createTempDir()`) and deleted by the SDK once encryption
+finishes. Only the encrypted `.cpb` is written to the app files directory
+(`FileSystem.getAppDirectory()`, report-id-scoped) for the host to share. As a safety net, any
+`.cpb` older than 24h is swept on the next `Gears.initialize(...)` by `CleanupProblemReportsUseCase`,
+so bundles the host forgot to remove don't accumulate.
 
 ### 3.8 Deployment Topology
 
