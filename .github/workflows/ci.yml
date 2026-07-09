@@ -17,10 +17,8 @@ concurrency:
 
 jobs:
   # ── Security scans (replaces the GitLab SAST stage + MobSF jobs) ──────────────
-  # Report-only by default (so the dev loop isn't blocked on first run). Flip the
-  # `|| true` / `--exit-code` to enforce once the baseline is clean.
-  # TODO(follow-up): design docs treat security scans as a build gate — make these
-  # steps blocking once the initial baseline is triaged. Tracked separately.
+  # Enforcing: any finding fails the job (verified secrets, HIGH/CRITICAL vulns,
+  # ERROR-severity SAST rules, or mobsfscan findings), gating the pipeline.
   sast:
     name: Security scans
     runs-on: ubuntu-latest
@@ -31,20 +29,20 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh \
             | sh -s -- -b "$RUNNER_TEMP/bin"
-          "$RUNNER_TEMP/bin/trufflehog" filesystem . --only-verified || true
+          "$RUNNER_TEMP/bin/trufflehog" filesystem . --only-verified --fail
 
       - name: Trivy (vuln / secret / misconfig)
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
             | sh -s -- -b "$RUNNER_TEMP/bin"
           "$RUNNER_TEMP/bin/trivy" fs --scanners vuln,secret,misconfig \
-            --severity HIGH,CRITICAL --exit-code 0 .
+            --severity HIGH,CRITICAL --exit-code 1 .
 
       - name: Semgrep (SAST)
-        run: pipx run semgrep scan --config auto --severity ERROR . || true
+        run: pipx run semgrep scan --config auto --severity ERROR --error .
 
       - name: MobSF source scan (mobsfscan)
-        run: pipx run mobsfscan . || true
+        run: pipx run mobsfscan .
 
   # ── Android: quality + JVM tests + AAR (replaces ci/android.yml) ──────────────
   android:
